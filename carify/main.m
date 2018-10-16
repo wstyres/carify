@@ -9,41 +9,69 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
+void createAssetsCarInDirectory(NSString *resourcesDirectory, NSString *xcassetsPath);
 void createAppIconSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath);
 void createBasicImageSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath);
 void insertFilenameIntoDictionaryForSize(NSString *filepath, NSMutableDictionary *dictionary, NSString *size, NSString *idiom, NSString *scale, NSString *output);
 void createOutputDirectory(NSString *outputDirPath);
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char * argv[]) { //Assets input, Resources folder output
     @autoreleasepool {
-        NSString *assetsFolderPath = @"/Users/wstyres/CarifyTests/Assets/";//argv[1];
-        NSString *outputFolderPath = @"/Users/wstyres/CarifyTests/Assets.xcassets/";//argv[1]; + Assets.xcassets
-        NSLog(@"Analyzing Assets folder at %@", assetsFolderPath);
-        
-        createOutputDirectory(outputFolderPath);
-        
-        NSError *dirError;
-        NSArray *dirs = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:assetsFolderPath error:&dirError]; //List of image sets to compile
-        
-        if (dirError != nil) {
-            NSLog(@"Erorr while reading directories: %@", dirError.localizedDescription);
-        }
-        
-        for (NSString *directory in dirs) {
-            if (![directory isEqualToString:@".DS_Store"]) {
-                if ([directory isEqualToString:@"AppIcon"]) { //We're making an AppIcon image set
-                    createAppIconSet(directory, assetsFolderPath, outputFolderPath);
-                }
-                else if ([directory isEqualToString:@"LaunchImage"]) {
-                    printf("Launch images not currently supported");
-                }
-                else {
-                    createBasicImageSet(directory, assetsFolderPath, outputFolderPath);
+//        if (argc < 3) {
+//            printf("Usage: ./carify <Assets folder input> <Resources folder output\n");
+//        }
+//        else {
+            NSString *assetsFolderPath = @"/Users/wstyres/Projects/Apps/AUPMC/AUPM/Assets"; //[NSString stringWithUTF8String:argv[1]];
+            NSString *resourcesFolderPath = @"/Users/wstyres/Projects/Apps/AUPMC/AUPM/Resources"; //[NSString stringWithUTF8String:argv[2]];
+            NSString *outputFolderPath = [resourcesFolderPath stringByAppendingString:@"/Assets.xcassets/"];
+            
+            createOutputDirectory(outputFolderPath);
+            
+            NSError *dirError;
+            NSArray *dirs = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:assetsFolderPath error:&dirError]; //List of image sets to compile
+            
+            if (dirError != nil) {
+                NSLog(@"Error while reading directories: %@", dirError.localizedDescription);
+            }
+            
+            for (NSString *directory in dirs) {
+                if (![directory isEqualToString:@".DS_Store"]) {
+                    if ([directory isEqualToString:@"AppIcon"]) { //We're making an AppIcon image set
+                        createAppIconSet(directory, assetsFolderPath, outputFolderPath);
+                    }
+                    else if ([directory isEqualToString:@"LaunchImage"]) {
+                        printf("Launch images not currently supported");
+                    }
+                    else {
+                        createBasicImageSet(directory, assetsFolderPath, outputFolderPath);
+                    }
                 }
             }
-        }
+            
+            createAssetsCarInDirectory(resourcesFolderPath, outputFolderPath);
+        //}
     }
     return 0;
+}
+
+void createAssetsCarInDirectory(NSString *resourcesDirectory, NSString *xcassetsPath) {
+    NSTask *createCarTask = [[NSTask alloc] init];
+    [createCarTask setLaunchPath:@"/Applications/Xcode.app/Contents/Developer/usr/bin/actool"];
+    NSArray *carArgs = [[NSArray alloc] initWithObjects: xcassetsPath, @"--compile", resourcesDirectory, @"--platform", @"iphoneos", @"--minimum-deployment-target", @"8.0", @"--app-icon", @"AppIcon", @"--output-partial-info-plist", [resourcesDirectory stringByAppendingPathComponent:@"tmp.plist"], nil];
+    [createCarTask setArguments:carArgs];
+    
+    [createCarTask launch];
+    [createCarTask waitUntilExit];
+    
+    [[NSFileManager defaultManager] removeItemAtPath:xcassetsPath error:nil];
+    
+    NSDictionary *tmpPlistDict = [NSDictionary dictionaryWithContentsOfFile:[resourcesDirectory stringByAppendingPathComponent:@"tmp.plist"]];
+    NSMutableDictionary *infoPlistDict = [NSMutableDictionary dictionaryWithContentsOfFile:[resourcesDirectory stringByAppendingPathComponent:@"Info.plist"]];
+    
+    [infoPlistDict addEntriesFromDictionary:tmpPlistDict];
+    [infoPlistDict writeToFile:[resourcesDirectory stringByAppendingPathComponent:@"Info.plist"] atomically:true];
+    
+    [[NSFileManager defaultManager] removeItemAtPath:[resourcesDirectory stringByAppendingPathComponent:@"/tmp.plist"] error:nil];
 }
 
 void createAppIconSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath) {
@@ -276,15 +304,15 @@ void insertFilenameIntoDictionaryForSize(NSString *filepath, NSMutableDictionary
 void createOutputDirectory(NSString *outputDirPath) {
     NSError *createError;
     [[NSFileManager defaultManager] createDirectoryAtPath:outputDirPath withIntermediateDirectories:true attributes:nil error:&createError];
-    
+
     if (createError != nil) {
         NSLog(@"Error while creating path %@", createError.localizedDescription);
     }
-    
+
     NSString *contents = [NSString stringWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Contents" ofType:@"json"] encoding:NSUTF8StringEncoding error:nil];
     NSError *writeError;
     [contents writeToFile:[outputDirPath stringByAppendingString:@"Contents.json"] atomically:true encoding:NSUTF8StringEncoding error:&writeError];
-    
+
     if (writeError != nil) {
         NSLog(@"Error while writing contents.json %@", writeError.localizedDescription);
     }
