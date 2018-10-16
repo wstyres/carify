@@ -8,23 +8,33 @@
 
 /* Begin PBXBuildFile section */
 		891CC3CB2176333600C71191 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 891CC3CA2176333600C71191 /* main.m */; };
+		891CC3EE21763E8600C71191 /* AppIcon.json in Copy Files */ = {isa = PBXBuildFile; fileRef = 891CC3E621763A3700C71191 /* AppIcon.json */; };
+		891CC3EF21763E8600C71191 /* Contents.json in Copy Files */ = {isa = PBXBuildFile; fileRef = 891CC3E721763A7D00C71191 /* Contents.json */; };
+		891CC3F021763E8600C71191 /* Universal.json in Copy Files */ = {isa = PBXBuildFile; fileRef = 891CC3E821763A9C00C71191 /* Universal.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		891CC3C52176333600C71191 /* CopyFiles */ = {
+		891CC3C52176333600C71191 /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 7;
 			files = (
+				891CC3EE21763E8600C71191 /* AppIcon.json in Copy Files */,
+				891CC3EF21763E8600C71191 /* Contents.json in Copy Files */,
+				891CC3F021763E8600C71191 /* Universal.json in Copy Files */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			name = "Copy Files";
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		891CC3C72176333600C71191 /* carify */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = carify; sourceTree = BUILT_PRODUCTS_DIR; };
 		891CC3CA2176333600C71191 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		891CC3E621763A3700C71191 /* AppIcon.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = AppIcon.json; sourceTree = "<group>"; };
+		891CC3E721763A7D00C71191 /* Contents.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Contents.json; sourceTree = "<group>"; };
+		891CC3E821763A9C00C71191 /* Universal.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Universal.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,9 +67,20 @@
 		891CC3C92176333600C71191 /* carify */ = {
 			isa = PBXGroup;
 			children = (
+				891CC3E521763A1900C71191 /* Base */,
 				891CC3CA2176333600C71191 /* main.m */,
 			);
 			path = carify;
+			sourceTree = "<group>";
+		};
+		891CC3E521763A1900C71191 /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				891CC3E621763A3700C71191 /* AppIcon.json */,
+				891CC3E721763A7D00C71191 /* Contents.json */,
+				891CC3E821763A9C00C71191 /* Universal.json */,
+			);
+			path = Base;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,7 +92,7 @@
 			buildPhases = (
 				891CC3C32176333600C71191 /* Sources */,
 				891CC3C42176333600C71191 /* Frameworks */,
-				891CC3C52176333600C71191 /* CopyFiles */,
+				891CC3C52176333600C71191 /* Copy Files */,
 			);
 			buildRules = (
 			);
