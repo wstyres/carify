@@ -17,12 +17,12 @@ void createOutputDirectory(NSString *outputDirPath);
 
 int main(int argc, const char * argv[]) { //Assets input, Resources folder output
     @autoreleasepool {
-//        if (argc < 3) {
-//            printf("Usage: ./carify <Assets folder input> <Resources folder output\n");
-//        }
-//        else {
-            NSString *assetsFolderPath = @"/Users/wstyres/Projects/Apps/AUPMC/AUPM/Assets"; //[NSString stringWithUTF8String:argv[1]];
-            NSString *resourcesFolderPath = @"/Users/wstyres/Projects/Apps/AUPMC/AUPM/Resources"; //[NSString stringWithUTF8String:argv[2]];
+        if (argc < 3) {
+            printf("Usage: ./carify <Assets folder input> <Resources folder output\n");
+        }
+        else {
+            NSString *assetsFolderPath = [NSString stringWithUTF8String:argv[1]];
+            NSString *resourcesFolderPath = [NSString stringWithUTF8String:argv[2]];
             NSString *outputFolderPath = [resourcesFolderPath stringByAppendingString:@"/Assets.xcassets/"];
             
             createOutputDirectory(outputFolderPath);
@@ -49,7 +49,7 @@ int main(int argc, const char * argv[]) { //Assets input, Resources folder outpu
             }
             
             createAssetsCarInDirectory(resourcesFolderPath, outputFolderPath);
-        //}
+        }
     }
     return 0;
 }
