@@ -10,6 +10,7 @@
 #import <AppKit/AppKit.h>
 
 void createAppIconSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath);
+void createBasicImageSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath);
 void insertFilenameIntoDictionaryForSize(NSString *filepath, NSMutableDictionary *dictionary, NSString *size, NSString *idiom, NSString *scale, NSString *output);
 void createOutputDirectory(NSString *outputDirPath);
 
@@ -37,7 +38,7 @@ int main(int argc, const char * argv[]) {
                     printf("Launch images not currently supported");
                 }
                 else {
-                    
+                    createBasicImageSet(directory, assetsFolderPath, outputFolderPath);
                 }
             }
         }
@@ -134,6 +135,102 @@ void createAppIconSet(NSString *directory, NSString *assetsFolderPath, NSString 
             case 1024: {
                 insertFilenameIntoDictionaryForSize(imagePath, jsonOutput, @"1024x1024", @"ios-marketing", @"1x", outputPath);
                 break;
+            }
+        }
+    }
+    
+    NSError *outputError;
+    NSError *writeError;
+    NSData *outputData = [NSJSONSerialization dataWithJSONObject:jsonOutput options:0 error:&outputError];
+    NSString *outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+    [outputString writeToFile:[outputPath stringByAppendingPathComponent:@"Contents.json"] atomically:true encoding:NSUTF8StringEncoding error:&writeError];
+    
+    if (outputError != nil) {
+        NSLog(@"Error turning NSDictionary into JSON: %@", outputError);
+    }
+    
+    if (writeError != nil) {
+        NSLog(@"Error writing json to file: %@", writeError);
+    }
+}
+
+void createBasicImageSet(NSString *directory, NSString *assetsFolderPath, NSString *outputFolderPath) {
+    NSError *imagesError;
+    NSString *imageSetPath = [assetsFolderPath stringByAppendingPathComponent:directory];
+    NSArray *images = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:imageSetPath error:&imagesError]; //List of images in each set
+    
+    if (imagesError != nil) {
+        NSLog(@"Error while reading directories: %@", imagesError.localizedDescription);
+    }
+    
+    NSError *createError;
+    NSString *outputPath = [outputFolderPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.imageset", directory]];
+    [[NSFileManager defaultManager] createDirectoryAtPath:outputPath withIntermediateDirectories:true attributes:nil error:&createError];
+    
+    if (createError != nil) {
+        NSLog(@"Error while creating path %@", createError.localizedDescription);
+    } //Create image set
+    
+    NSString *jsonString = [NSString stringWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"Universal" ofType:@"json"] encoding:NSUTF8StringEncoding error:nil];
+    NSData *data = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSMutableDictionary *jsonOutput = [[NSJSONSerialization JSONObjectWithData:data options:0 error:nil] mutableCopy];
+    
+    for (NSString *imageFilename in images) {
+        if ([imageFilename isEqualToString:@".DS_Store"]) {
+            continue;
+        }
+        
+        NSString *imagePath = [imageSetPath stringByAppendingPathComponent:imageFilename];
+        NSArray *components = [imageFilename componentsSeparatedByString:@"@"];
+        if ([components count] > 1) {
+            NSString *scale = components[1];
+            NSArray *secondComp = [scale componentsSeparatedByString:@"."];
+            scale = secondComp[0];
+            
+            NSArray *images = (NSArray *)jsonOutput[@"images"];
+            NSMutableArray *newArray = [images mutableCopy];
+            
+            if ([scale isEqualToString:@"1x"]) {
+                NSMutableDictionary *scaleDict = [newArray[0] mutableCopy];
+                [scaleDict setObject:imageFilename forKey:@"filename"];
+                newArray[0] = scaleDict;
+            }
+            else if ([scale isEqualToString:@"2x"]) {
+                NSMutableDictionary *scaleDict = [newArray[1] mutableCopy];
+                [scaleDict setObject:imageFilename forKey:@"filename"];
+                newArray[1] = scaleDict;
+            }
+            else if ([scale isEqualToString:@"3x"])  {
+                NSMutableDictionary *scaleDict = [newArray[2] mutableCopy];
+                [scaleDict setObject:imageFilename forKey:@"filename"];
+                newArray[2] = scaleDict;
+            }
+            else {
+                printf("Improper scale for file %s", [imageFilename UTF8String]);
+            }
+
+            [jsonOutput setObject:newArray forKey:@"images"];
+            
+            NSError *copyError;
+            [[NSFileManager defaultManager] copyItemAtPath:imagePath toPath:[outputPath stringByAppendingPathComponent:[imagePath lastPathComponent]] error:&copyError]; //Copy icon to directory
+            if (copyError != nil) {
+                NSLog(@"Error while copying icon %@\n", copyError.localizedDescription);
+            }
+        }
+        else { //Assume 1x
+            NSArray *images = (NSArray *)jsonOutput[@"images"];
+            NSMutableArray *newArray = [images mutableCopy];
+            
+            NSMutableDictionary *scaleDict = [newArray[0] mutableCopy];
+            [scaleDict setObject:imageFilename forKey:@"filename"];
+            newArray[0] = scaleDict;
+            
+            [jsonOutput setObject:newArray forKey:@"images"];
+            
+            NSError *copyError;
+            [[NSFileManager defaultManager] copyItemAtPath:imagePath toPath:[outputPath stringByAppendingPathComponent:[imagePath lastPathComponent]] error:&copyError]; //Copy icon to directory
+            if (copyError != nil) {
+                NSLog(@"Error while copying icon %@\n", copyError.localizedDescription);
             }
         }
     }
